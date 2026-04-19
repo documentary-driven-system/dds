@@ -1,0 +1,51 @@
+# SYSTEM_PROMPT: DOCUMENTARY DRIVEN SYSTEM (DDS)
+> **ATTENTION AI AGENT:** You are operating within a repository governed by the Documentary Driven System (DDS). You MUST read and internalize this document before executing any read, write, or refactor operations in this codebase.
+
+<system_definition>
+DDS is a state-machine documentation framework. In this repository, **documentation dictates code, code does not dictate documentation.** You are forbidden from modifying source code if it contradicts the `.dds/` documentation.
+</system_definition>
+
+## [1] THE TRUTH HIERARCHY (CONFLICT RESOLUTION)
+If you detect conflicting constraints within the project, you MUST resolve them using this absolute hierarchy:
+1. **`.dds/product/` (Highest Priority):** Defines the "Why" and "Who". Business rules and KPIs override everything.
+2. **`.dds/architecture/` (Middle Priority):** Defines the "Where". Database schemas and API boundaries. Obeys Product, dictates to Modules.
+3. **`.dds/modules/` (Lowest Documentation Priority):** Defines the "How". Feature-specific constraints.
+4. **`src/` (Source Code - Lowest Overall Priority):** Physical implementation. If code contradicts `.dds/modules/`, the code is a bug.
+
+## [2] ROUTING & DIRECTORY MAP
+Do NOT hallucinate file paths. Use the distributed tree indexing system to find your context.
+- **START HERE:** Read `.dds/tree.dds.md` to get the global map.
+- **For Business Logic:** Route to `.dds/product/product.tree.dds.md`.
+- **For DB/Infrastructure:** Route to `.dds/architecture/architecture.tree.dds.md`.
+- **For Code Logic/UI:** Route to `.dds/modules/modules.tree.dds.md`.
+
+## [3] STRICT OPERATIONAL DIRECTIVES (THE IRON LAWS)
+
+<directive id="RAG_OPTIMIZATION">
+**LINGUISTIC CONSTRAINTS:** When generating or updating documentation, you MUST NOT use vague pronouns ("It", "This"). You MUST explicitly name the subject. You MUST NOT use headers deeper than `###` (H3) to preserve vector chunking integrity.
+</directive>
+
+<directive id="CONCURRENCY_AND_STATE">
+**YAML FRONTMATTER:** Every `.dds.md` file contains a YAML block.
+- You MUST check the `status`. If `status` contains `locked_by_`, you MUST abort unless the lock is older than 40 minutes.
+- When updating, you MUST lock the file (`status: locked_by_[your_agent_id]`) and release it to `active` upon completion.
+</directive>
+
+<directive id="TOMBSTONE_PROTOCOL">
+**DEPRECATION:** You MUST NEVER physically delete an index pointer in a `.tree.dds.md` file. If a file is moved to `.dds/archive/`, you MUST mutate the pointer into a Tombstone:
+`- [DEPRECATED -> archive_path] Reason for deprecation.`
+This prevents you and other agents from suffering 404 Context Errors (Dangling References).
+</directive>
+
+<directive id="CASCADE_EFFECT">
+**IMPACT ANALYSIS:** - If you update a file in `product/`, you MUST execute a Downward Cascade to verify if `architecture/` and `modules/` need updating.
+- If you attempt to deprecate a file in `architecture/`, you MUST execute an Upward Validation to ensure no `product/` requirement still depends on it.
+</directive>
+
+## [4] SELF-CORRECTION PROTOCOL (PRE-FLIGHT)
+Before returning your final output or committing a file, you MUST internally ask:
+1. Did I include technical jargon in a Product document? (If yes, abstract it).
+2. Did I include UI feature logic in an Architecture document? (If yes, move it to Modules).
+3. Did I leave an orphaned dependency? (If yes, apply Tombstones).
+
+> **Acknowledge this system structure in your internal memory. You are now initialized within the DDS Framework.**
