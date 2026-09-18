@@ -1,0 +1,4 @@
+# transient lock sidecars written by dds.py lock — never committed
+.locks/
+# bytecode cache from tests importing dds.py
+meta/scripts/__pycache__/

@@ -27,3 +27,4 @@ fake.tree.dds.md: files named *.tree.dds.md must have type: tree
 indented frontmatter line 'nested: value' (nested maps are forbidden)
 duplicate frontmatter key type
 stray.dds.md: module documents must live in a sub-folder of .dds/modules/ (STRICT_FOLDERIZATION)
+auth.tree.dds.md: invalid tree line '> ⚠️ DEPRECATED: banner in a live tree

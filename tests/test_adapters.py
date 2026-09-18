@@ -25,6 +25,20 @@ PRE_COMMIT = ADAPTERS / "git" / "pre-commit"
 SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 
 
+def find_bash():
+    """Git Bash first: on Windows, `bash` on PATH is often the WSL launcher in System32, which is not a shell."""
+    git = shutil.which("git")
+    if git:
+        for parent in list(Path(git).resolve().parents)[:4]:
+            for cand in (parent / "bin" / "bash.exe", parent / "usr" / "bin" / "bash.exe", parent / "bin" / "bash"):
+                if cand.exists():
+                    return str(cand)
+    bash = shutil.which("bash")
+    if bash and "system32" in bash.lower():
+        return None
+    return bash
+
+
 def frontmatter_top_level_keys(text):
     body = text.split("---")[1]
     return {ln.split(":", 1)[0] for ln in body.splitlines() if ln.strip() and not ln.startswith((" ", "\t"))}
@@ -97,9 +111,9 @@ class ClaudeHook(unittest.TestCase):
         self.assertEqual(len({h["command"] for h in self.handlers}), 1, "both forms run the same gate")
 
     def _run_hook(self, project_dir):
-        bash = shutil.which("bash")
+        bash = find_bash()
         if not bash:
-            self.skipTest("bash not available")
+            self.skipTest("Git Bash not available")
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(project_dir))
         proc = subprocess.run([bash, "-c", self.hook["command"]], env=env, capture_output=True, text=True, encoding="utf-8")
         return proc.returncode, proc.stdout + proc.stderr
