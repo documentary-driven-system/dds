@@ -1,71 +1,51 @@
 # DDS: The Architecture Tier (`.dds/architecture/`)
 
-**The Architect’s Guide to Infrastructure, Data Models, and Machine Perception:**
+The human guide to the Architecture tier. The protocols in `.dds/meta/dds.architecture/` are the source of truth; this page explains them.
 
 ---
 
-## 1. Introduction
+## 1. What lives here
 
-Welcome to the **Architecture Tier** of the Documentation-Driven System (DDS).
+The Architecture tier is the "Where": the tech stack, the data models with exact types, the infrastructure, the security boundaries, and the global API contracts. System Architects and DevOps own it. The tier obeys the Product tier and dictates to the Modules tier.
 
-If the Product tier is the "Why" and the Modules tier is the "How," the **Architecture tier is the "Where and the Boundaries."** Owned by System Architects, DevOps Engineers, and DBA AI Agents, this directory houses the foundational blueprints of the system: Database Entity-Relationship Diagrams (ERDs), global API contracts, CI/CD pipelines, and the global technology stack.
+## 2. The rules of the tier (`rules.dds.md`)
 
-This guide explains how to define and manage structural requirements within the `.dds/` framework, ensuring that the system's infrastructure perfectly bridges business goals with feature implementation.
+- **Mid-level authority.** An architecture document never contradicts a product requirement or a constraint; module documents obey the data models and boundaries defined here.
+- **Shape, not feature logic.** The tier documents *what the system is made of* ("the `users` table has an `email` column", "every request carries a JWT"), not how a feature behaves ("the login button triggers a query"). Feature behaviour belongs to modules.
+- **Hybrid folderization.** System-wide documents (`tech-stack.dds.md`, `core-database.dds.md`) live in the tier root; a service or integration with its own scope lives in `architecture/<service>/` with its own index tree.
 
-## 2. The Iron Laws of the Architecture Tier
+## 3. The lifecycle of an architecture document
 
-The Architecture tier is the "Middle Child" of the DDS Truth Hierarchy. It must balance upward constraints with downward enforcement. Contributors must adhere to three foundational laws:
+### A. Creating (`write.dds.md`)
 
-### I. The Mid-Level Authority (Two-Way Obedience)
+- Follow the template: context and alignment (which product requirement this serves), tech stack and infrastructure, data models and schemas, global boundaries and API contracts.
+- Exact data types: `VARCHAR(255)`, `UUIDv4`, `TIMESTAMPTZ`, never "text" or "a number".
+- Frontmatter follows `schema.dds.md`: `id: architecture-<name>`, `dependencies:` holding the **ids** of the product documents the architecture serves (never paths; `impact` resolves them), a one-sentence `description`.
+- Index the document in its folder's tree; finish with `python .dds/meta/scripts/dds.py check`.
 
-The Architecture tier obeys the Product tier and dictates to the Modules tier. You cannot create an architectural constraint (e.g., dropping a database table) that violates a business requirement. Conversely, all code written in the Modules tier must strictly obey the data models and API boundaries defined here.
+### B. Updating (`update.dds.md`)
 
-### II. Abstract Implementation (No Feature Logic)
+Two-way impact, because the tier sits in the middle:
 
-This tier documents the *shape* of the data and the *boundaries* of the system. You must never document feature-specific logic here (e.g., "The submit button queries this table and shows a success toast"). Keep the focus strictly on data types, schemas, and infrastructure rules. Feature logic belongs in the Modules tier.
+- **Upward check.** Does the change break a product requirement or a constraint? Then the update stops; architecture does not overrule product. The requirement is renegotiated first.
+- **Downward cascade.** Does the change alter how modules must behave (a renamed column, a changed contract)? `impact <id>` lists the dependents; route their updates.
+- Change only the affected section; append a changelog line (ten entries, older ones in `git log`); if `locking: on`, lock and unlock through `dds.py`.
 
-### III. Hybrid Folderization
+### C. Retiring (`deprecate.dds.md`)
 
-The Architecture tier supports both global and scoped documentation. System-wide documents (e.g., `tech-stack.dds.md`, `global-security.dds.md`) may sit directly in the root `.dds/architecture/` directory. Specific microservices or third-party integrations must be isolated in sub-directories (e.g., `.dds/architecture/payment-gateway/`).
+- **Upward validation.** `impact <id> --up` shows which product documents the element serves. If one is still `active`, the retirement is blocked, unless that document is itself the origin of the cascade that reached this element.
+- **Downward cascade.** `impact <id> --down` computes the module documents that depend on the element; they are retired in `CASCADE_MODE` (members do not block each other) or updated where the module survives with reduced scope.
+- Leaves-first: modules first, this document last. The retired document moves to `.dds/archive/architecture/...` with a banner and its original path; the tree line becomes a Tombstone with the reason; a service folder whose tree is now all Tombstones moves to the archive as well.
+- `check` is expected to fail mid-cascade; it passes again once the origin is mutated.
 
-## 3. The Lifecycle of an Architecture Document
+## 4. Before saving
 
-Managing infrastructure in DDS requires deterministic routing and extreme caution to prevent cascading failures across the system.
+1. Any feature behaviour in here? Move it to the module document.
+2. Every column typed exactly?
+3. Every pronoun's subject named inside its section?
+4. Does this document still serve an active product requirement, and does its `dependencies:` say which one?
+5. `check` passes.
 
-### A. Designing New Infrastructure (`write.dds.md`)
+## 5. Getting started
 
-When defining a new schema or service, contributors use **RAG-Optimized Linguistics** to ensure perfect machine perception:
-
-* **Exact Data Typing:** Vague terms like "text" or "number" are forbidden. You must use explicit, platform-agnostic or specific types (e.g., `VARCHAR(255)`, `UUIDv4`, `Float64`).
-* **The Pronoun Ban:** Vague pronouns ("It", "This") are forbidden. Always explicitly name the table, column, or service.
-* **Context-Bearing Headers:** Headers must encapsulate the domain context (e.g., `### [User_Auth] Database Schema`) and never exceed `###` (H3) in depth to maintain vector search integrity.
-
-### B. Updating Schemas & Contracts (`update.dds.md`)
-
-Updating a database column or changing an API endpoint requires a strict **Two-Way Impact Assessment**:
-
-* **Upward Check:** Does this structural change violate an existing Product KPI or Business Rule? If yes, the update is blocked until the business rule is renegotiated.
-* **Downward Cascade:** Does this schema change affect existing code? If yes, the system automatically routes update tasks to the corresponding Modules documents.
-* **Concurrency & Logging:** When `locking: on` is set, updates are locked during execution (`locked_by` + `locked_at`, 40-minute takeover computed by `dds.py`). Changelogs track schema versioning and keep at most 10 entries.
-
-### C. Retiring Infrastructure (`deprecate.dds.md`)
-
-When a database table or microservice is shut down, its removal must be handled surgically.
-
-* **The Two-Way Deprecation Gate:** Infrastructure cannot be deleted if an active Product document still requires it. If cleared by Product, the deprecation triggers a cascade destruction of dependent code in the Modules tier.
-* **The Tombstone Protocol:** Retired schemas are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link]: Legacy Auth DB retired.`). This ensures AI agents do not hallucinate about missing tables.
-
-## 4. Pre-Flight Self-Correction
-
-DDS requires all contributors (especially AI agents) to perform a self-audit before saving an Architecture document:
-
-1. **Feature Logic Leakage:** Did I accidentally include UI or specific function behavior in this document? (If yes, move it to Modules).
-2. **Type Strictness:** Are all database columns defined with exact data types?
-3. **Hierarchy Alignment:** Does this architecture serve a documented business goal?
-
-## 5. Getting Started
-
-If you are an AI Agent, read the `.dds/meta/manifesto.dds.md` to begin routing.
-If you are a System Architect, start by reviewing `.dds/architecture/architecture.tree.dds.md` to understand the current global infrastructure before defining a new schema.
-
-Welcome to structurally sound, machine-readable engineering.
+AI agents start at `.dds/meta/manifesto.dds.md`. Architects start at `.dds/architecture/architecture.tree.dds.md` to see the current stack and schemas before defining a new one. `examples/task-tracker/.dds/architecture/` shows a filled tier with exact types and a retired service.

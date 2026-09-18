@@ -1,99 +1,76 @@
-# Documentation-Driven System (DDS)
+# Documentation-Driven System (DDS): Overview
 
-**The Universal Open-Source Infrastructure for Machine-Perceptible & Enterprise-Grade Documentation:**
+The human-facing guide to the framework. The protocols under `.dds/meta/` are the source of truth; this page explains them, it does not replace them.
 
 ---
 
-## 1. Introduction: What is DDS?
+## 1. The problem DDS answers
 
-The **Documentation-Driven System (DDS)** is a universal, open-source documentation infrastructure designed for modern, high-complexity software projects. It bridges the critical gap between human developers, product managers, and Artificial Intelligence (AI) agents.
+AI coding agents start every session without memory of the last one. A repository whose behaviour lives in code, chat history, and people's heads gives each session a different picture, and the code drifts. DDS keeps the description of the system in one governed place, `.dds/`, tells people and agents how to change it, and checks that place before every commit.
 
-Unlike traditional documentation that quickly becomes outdated or scattered, DDS operates as a **State Machine**. It is a structured, deterministically routed, and hierarchical framework that ensures documentation is the absolute Single Source of Truth (SSoT) for the entire lifecycle of a project—from business vision to database schemas and modular code logic.
+The claim is modest and mechanical: a change is not committable until the documents describe the behaviour the code now has, and a script can tell when the documents contradict each other. What the code actually does is still established by review and tests.
 
-DDS is built on the principle of **Machine Perception (RAG-Optimization)**. Every rule, template, and directory is strictly formatted so that Large Language Models (LLMs) can read, update, and validate the system without hallucination or context loss, while remaining perfectly legible to human engineers.
+## 2. The laws
 
-## 2. The Core Philosophy
+Section [1] of `.dds/meta/manifesto.dds.md` holds six laws; the summary:
 
-DDS operates on four unbreakable laws:
+0. **Non-negotiable constraints.** Security, legal and compliance, safety, and physical constraints live in `.dds/product/constraints.dds.md`. No tier, KPI, or business goal overrides them; a conflict stops the work and goes to a human.
+1. **Single source of truth.** A change may start anywhere, a business decision, a schema migration, a code edit. Before the commit, the governing documents describe the new behaviour. At commit time, an `active` document is the reference and code that contradicts it is a defect; if the document is what is wrong, the document is fixed first. A `draft` document is not yet authoritative.
+2. **Truth hierarchy.** Conflicts between *rules* resolve top-down: product over architecture over modules; the lower document is corrected. KPIs are targets, never rules, and override nothing.
+3. **Threshold-based sync.** No commit while `dds.py check --gate` reports errors. Agents and CI are always strict; humans follow `gate:` in `.dds/tree.dds.md`, which starts at `warn` during adoption.
+4. **Schema conformance.** Every `.dds.md` file follows `schema.dds.md`; locks are transient and never committed.
+5. **Tombstones.** Nothing in `.dds/` is deleted. A retired document moves to `.dds/archive/` and leaves a Tombstone line in the index that pointed to it.
 
-### I. The Single Source of Truth (SSoT)
+Section [2] adds the routing precedence: multi-tier work is decided top-down (product first) and, for deprecations, executed leaves-first (modules first); a task that matches no tier changes no document; a tie goes to the higher tier; code no document governs goes through `adopt.dds.md` before anything else.
 
-Code does not dictate business logic; DDS dictates code. If the physical codebase contradicts the `.dds/` documentation, the codebase is considered to contain a bug. DDS is the ultimate authority on how the system should behave.
-
-### II. The Truth Hierarchy (Conflict Resolution)
-
-In large organizations, departments often clash. DDS resolves conflicts through a strict top-down hierarchy:
-**`Product > Architecture > Modules`**
-
-* **Product:** The "Why" (Business goals, user needs) overrides everything.
-* **Architecture:** The "Where" (Infrastructure, database) obeys Product, but overrides Modules.
-* **Modules:** The "How" (Code, UI, logic) obeys both Architecture and Product.
-
-### III. Threshold-Based Synchronization
-
-A physical project deployment or Git Commit cannot proceed unless the corresponding `.dds/` files have been updated to reflect the new reality. Documentation and code evolve in perfect atomic sync.
-
-### IV. The Cascade Effect (Two-Way Execution)
-
-DDS is a living system. A change at the top (`Product`) triggers an automatic **Downward Cascade**, forcing updates in database schemas and code modules. Conversely, attempting to delete infrastructure (`Architecture`) triggers an **Upward Validation** check against business rules before execution is allowed.
-
-## 3. The Global Architecture & Distributed Memory
-
-The DDS framework utilizes a distributed memory model. It is anchored by an always-on entry file for AI agents (`AGENTS.md`), followed by isolated, highly specialized domains within the `.dds/` root directory.
+## 3. Layout
 
 ```text
 / (Project Root)
-├── AGENTS.md                   # Always-on entry point for AI agents (CLAUDE.md imports it).
+├── AGENTS.md                   # Always-on entry point for agents; CLAUDE.md imports it.
+├── .claude/skills/dds/, .agents/skills/dds/   # The same steps as an Agent Skill, loaded on demand.
 └── .dds/
-    ├── meta/                   # The System Brain: constitution, schema, protocols, tooling.
-    │   ├── manifesto.dds.md    # Constitution + Master Routing Protocol.
-    │   ├── schema.dds.md       # The single frontmatter / id / tree grammar.
+    ├── meta/                   # Protocols and tooling. Changing these is a DDS version change.
+    │   ├── manifesto.dds.md    # Constitution, routing precedence, routing matrix, tooling contract.
+    │   ├── schema.dds.md       # The single frontmatter / id / tree grammar; every ENFORCED rule.
     │   ├── adopt.dds.md        # Bringing DDS into an existing codebase.
     │   ├── dds.product/        # rules / write / update / deprecate for the Product tier.
-    │   ├── dds.architecture/   # Same four protocols for the Architecture tier.
-    │   ├── dds.modules/        # Same four protocols for the Modules tier.
-    │   └── scripts/dds.py      # check | impact | lock | unlock | tree (stdlib only).
-    ├── product/                # The Business Core: Epics, user stories, KPIs.
-    │   └── product.tree.dds.md # Local index for the Product domain.
-    ├── architecture/           # The Foundation: DB schemas, tech stack, APIs.
-    │   └── architecture.tree.dds.md # Local index for the Architecture domain.
-    ├── modules/                # The Implementation: Feature logic, state management.
-    │   └── modules.tree.dds.md # Local index for the Modules domain.
-    ├── archive/                # The Graveyard: Deprecated documents, kept for history.
-    └── tree.dds.md             # The Master Root Index (Links all domain trees).
+    │   ├── dds.architecture/   # The same four protocols for the Architecture tier.
+    │   ├── dds.modules/        # The same four protocols for the Modules tier.
+    │   └── scripts/dds.py      # check | impact | lock | unlock | tree (standard library only).
+    ├── tree.dds.md             # Root index; carries dds_version, locking, gate.
+    ├── product/                # Why: vision, constraints, personas, KPIs, epics.
+    │   └── product.tree.dds.md
+    ├── architecture/           # Where: tech stack, data models, infrastructure, API boundaries.
+    │   └── architecture.tree.dds.md
+    ├── modules/                # How: one document per logical feature, in sub-folders.
+    │   └── modules.tree.dds.md
+    └── archive/                # Retired documents and emptied index trees, mirrored by tier.
 ```
 
-### 3.1. The Meta Tier (`.dds/meta/`)
+Each tier has a human guide: `dds-product.md`, `dds-architecture.md`, `dds-modules.md`.
 
-This is the operational rulebook. It contains the **Master Dispatcher** (`manifesto.dds.md`), routing users and AI agents to the correct domain based on their intent.
+## 4. The mechanics, and what each one does and does not do
 
-### 3.2. The Product Tier (`.dds/product/`)
+- **One schema.** Flat YAML frontmatter with a fixed field set: `id`, `type`, `status` (`draft` / `active` / `deprecated`), `dependencies` (ids, never paths), `last_updated`, optional `description`, and for module documents `sources:` globs naming the code the document governs. Ids are permanent and prefixed by tier. `check` rejects anything else.
+- **Index trees.** Every folder has a `<folder>.tree.dds.md`; every document is listed exactly once in its folder's tree; every tree is reachable from the root through one chain of pointers. Orphaned knowledge is an error, not a smell.
+- **Dependency graph.** `impact <id>` lists direct dependents, `--down` the transitive cascade set, `--up` what a document itself obeys. The deprecate protocols use it instead of asking anyone to search.
+- **Deprecation lifecycle.** A retirement is decided top-down and executed leaves-first: modules first, the origin last, so no active document ever depends on a retired one. Members of the same cascade set do not block each other; a dependent outside the set does. Retired documents keep their id forever under `.dds/archive/`; the tree line that named them becomes a Tombstone with the reason. An emptied local tree moves to the archive too.
+- **The gate.** `check --gate` is what the hooks run. Plain `check` reports the same errors and shows locks as information; the gate treats a present lock as an error. `--coverage` lists code files no module document governs; `--sync` warns when governed code changed and its document did not. `--sync` is a drift detector, touching the document silences it, and human review is what establishes correctness.
+- **Locks.** Off by default. With `locking: on`, `dds.py lock` coordinates executors that share one working copy through an exclusive-create sidecar under `.dds/.locks/`, a 40-minute takeover rule computed from a timestamp, and a mirror in the frontmatter that is never committed. Across clones, branches do this job.
+- **Capped changelog.** Ten entries per document; older ones are trimmed and remain in `git log`.
+- **Writing conventions.** Headers no deeper than H3, headers that carry their context, and referents named inside the section they are used in, so a section still makes sense when a retrieval tool hands it over alone. These are conventions checked by convention (and optionally by Vale), except header depth, which `check` warns about.
 
-Owned by Product Managers and Business Analysts. This tier defines target audiences, revenue models, and strict business constraints. It is strictly technology-agnostic.
-👉 *For detailed operational protocols, refer to:* **`dds-product.md`**
+What the tooling does not do: it does not orchestrate agents (update cascades are executor discipline plus `--sync` warnings), and it does not verify that code behaves as documented.
 
-### 3.3. The Architecture Tier (`.dds/architecture/`)
+## 5. Adoption
 
-Owned by System Architects and DevOps. This tier defines the global technological boundaries, database ERDs, security protocols, and microservice communications.
-👉 *For detailed operational protocols, refer to:* **`dds-architecture.md`**
+`.dds/meta/adopt.dds.md` is the protocol for a codebase that already exists. Copy the template, install the adapters, set `gate: warn`, and write documents as `status: draft` from the code, features rather than files, with `sources:` pointing at what they govern. `check --coverage` shows what is still ungoverned. A human review promotes a draft to `active`; from that moment the document is authoritative for its sources. Agents are held to the strict gate from day one and must create a draft before touching ungoverned code.
 
-### 3.4. The Modules Tier (`.dds/modules/`)
+## 6. How agents find any of this
 
-Owned by Software Engineers and Coder AI Agents. This tier houses the specific logic for application features (e.g., Auth, Cart, Payment) and exact functional constraints.
-👉 *For detailed operational protocols, refer to:* **`dds-modules.md`**
+Nothing reads `.dds/` unless an entry point says so. `templates/adapters/` holds the always-on file (`AGENTS.md`; `CLAUDE.md` imports it for Claude Code), the same steps as an Agent Skill for `.claude/skills/` and `.agents/skills/`, a Claude Code hook that runs the gate before `git commit`, a git pre-commit hook for humans, and a CI job. `templates/adapters/README.md` maps each agent to what it reads.
 
-## 4. Advanced System Mechanics
+## 7. Versioning
 
-DDS is engineered to survive the chaos of enterprise scaling and multi-agent AI environments. It includes built-in defense mechanisms:
-
-* **YAML Frontmatter (The System Heartbeat):** Every `.dds.md` file begins with a strict YAML block dictating its `id`, `status`, `dependencies`, and `last_updated` state. This makes cross-referencing machine-readable.
-* **Pre-Flight Self-Correction (Validation Loop):** Before saving any document, AI agents must run a self-audit (e.g., *"Did I use vague pronouns? Is this header too deep?"*). This limits context degradation over time.
-* **Concurrency Control (File Locking):** Prevents race conditions by locking files (`locked_by` + `locked_at` fields, written by `dds.py lock`) when an AI or human is updating a document, complete with a 40-minute timeout safeguard.
-* **Distributed Tree Indexing:** Prevents "orphaned" knowledge. The indexing is recursive and distributed; every folder has its own `.tree.dds.md`, which links upward to the Master Root Tree.
-* **The Tombstone Protocol:** Deleted features are not erased; they leave a "Tombstone" pointer to the archive. This prevents AI agents from experiencing "Dangling References" (404 Context Errors) and explains *why* a feature is gone.
-* **Capped Changelogs:** Each document keeps at most 10 changelog entries; older entries are trimmed and remain in `git log`. `dds.py check` warns above the cap.
-* **RAG-Optimized Linguistics:** Strict linguistic constraints (e.g., The Pronoun Ban, Maximum H3 Header Depth) keep each chunk self-describing when text is split for retrieval.
-
-## 5. Open Source & Contribution
-
-DDS is a living, open-source standard. It is designed to be forked, customized, and integrated into any tech stack. Whether you are a solo developer trying to maintain sanity, or an enterprise managing a swarm of autonomous AI coding agents, DDS provides the foundational memory your project needs to thrive.
+`dds_version` lives in `.dds/tree.dds.md` and `.dds/meta/manifesto.dds.md` and must match; `dds.py` warns when its own version differs. Once a version is tagged, protocol text under `.dds/meta/` changes only with a version bump (MINOR for compatible protocol edits, MAJOR when the schema breaks). `v1.0.0` is the original prose release; `2.0.0` is the current, unreleased line and breaks the 1.0 frontmatter, so it is still being edited in place.
