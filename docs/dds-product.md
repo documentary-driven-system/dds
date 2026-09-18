@@ -1,70 +1,57 @@
 # DDS: The Product Tier (`.dds/product/`)
 
-**The Strategist’s Guide to Business Logic, Epics, and Machine Perception:**
+The human guide to the Product tier. The protocols in `.dds/meta/dds.product/` are the source of truth; this page explains them.
 
 ---
 
-## 1. Introduction
+## 1. What lives here
 
-Welcome to the **Product Tier** of the Documentary Driven System (DDS).
+The Product tier is the "Why": the vision, the personas, the KPIs, the epics with their user stories, and the non-negotiable constraints. Product Managers and Business Analysts own it; AI agents write to it only through the protocols.
 
-If the Architecture tier is the "Where" and the Modules tier is the "How," the **Product tier is the "Why."** This directory is the absolute top of the Truth Hierarchy. Owned by Product Managers, Business Analysts, and AI Strategy Agents, this tier houses the business vision, user personas, Key Performance Indicators (KPIs), and detailed User Stories.
+The tier sits at the top of the hierarchy **for rules**. Above it sits one document that belongs to nobody's roadmap: `constraints.dds.md`.
 
-This guide explains how to define and manage business requirements within the `.dds/` framework to ensure perfectly aligned technical execution.
+## 2. The rules of the tier (`rules.dds.md`)
 
-## 2. The Iron Laws of the Product Tier
+- **Technology agnosticism.** Product documents name no languages, databases, or frameworks. "Data Storage" and "User Interface" are the vocabulary; the "How" belongs to the lower tiers.
+- **Stakeholder clarity.** A non-technical reader must be able to follow every document, while the writing conventions (context-bearing headers, referents named inside their section) keep each section readable on its own.
+- **Top of the rule hierarchy.** A product rule overrides architecture and module rules; a change here triggers a review of both lower tiers. Constraints sit above even this tier.
+- **Flexible folderization.** Global documents (`vision.dds.md`, `constraints.dds.md`, `target-personas.dds.md`) live in the tier root; epics live in `epics/<epic-name>/` with their own index tree.
+- **KPIs are targets.** A KPI is measurable and never phrased as a rule. Nobody cites a KPI to override an architecture or module rule, and nobody cites one against a constraint; that conflict goes to a human.
 
-Because the Product tier sits at the apex of the system, every decision made here ripples downward. Contributors must adhere to three foundational laws:
+## 3. Constraints (`constraints.dds.md`)
 
-### I. Absolute Technology Agnosticism
+The document with the reserved id `product-constraints` lists security, legal and compliance, safety, and physical constraints as imperative rules, each with its source (a law, a standard, a contract, a policy). It is the one place where "increase conversion" can never win an argument. `gate: strict` requires this document to exist and be `active`; a fresh adoption writes it first, as a draft, and promotes it after legal or security review.
 
-The Product tier documents **Business Value**, not technical implementation. You must never mention specific coding languages, database structures (e.g., SQL), or frameworks (e.g., React) in this directory. Speak in terms of "Data Storage," "User Interface," and "Business Rules."
+## 4. The lifecycle of a product document
 
-### II. The Downward Cascade (Absolute Authority)
+### A. Creating (`write.dds.md`)
 
-The Product tier is the ultimate authority. If a business requirement changes here, it instantly renders conflicting Architecture or Module documents invalid. Product dictates Architecture; Architecture dictates Modules.
+- Follow the template: business vision and value, personas, KPIs, user stories with acceptance criteria. The constraints document has its own variant.
+- Frontmatter follows `schema.dds.md`: `id: product-<name>`, `dependencies: []` (the top tier depends on nothing), a one-sentence `description` the index tree shows.
+- Index the document in its folder's tree; a new epic gets its own `epics/<epic>/<epic>.tree.dds.md` and a pointer from `product.tree.dds.md`.
+- Finish with `python .dds/meta/scripts/dds.py check`.
 
-### III. Flexible Folderization
+### B. Updating (`update.dds.md`)
 
-Unlike lower tiers, the Product tier allows for high-level, global documents (e.g., `vision.dds.md`, `target-personas.dds.md`) to sit directly in the root `.dds/product/` directory. Only specific, complex feature sets (Epics) require isolated sub-directories (e.g., `.dds/product/epics/user-onboarding/`).
+- Change only the section that changed; no full rewrites.
+- Assess the downward impact: does the new requirement change a data model or an API (architecture)? a component's behaviour (modules)? Route those updates; `impact <id>` shows who depends on the document.
+- Append a changelog line with the business reason. The changelog keeps ten entries; older ones stay in `git log`.
+- If `locking: on` is set, take and release the lock through `dds.py lock` / `unlock`; never commit a lock.
 
-## 3. The Lifecycle of a Product Document
+### C. Retiring (`deprecate.dds.md`)
 
-Managing business logic in DDS requires deterministic routing to ensure AI agents and human developers never lose context.
+- A business decision to retire an epic is obeyed, but nothing is left orphaned: `impact <id> --down` computes the cascade set, every architecture and module document that depends on the epic, directly or transitively.
+- The cascade runs leaves-first: module documents first, then architecture, the epic itself last, so no active document ever depends on a retired one. Members of the set do not block each other; a dependent outside the set blocks and is handled first.
+- Each retired document gets `status: deprecated`, a date, its original path, a banner, and moves to `.dds/archive/product/...`. The tree line that named it becomes a Tombstone with the reason. An epic whose tree is now all Tombstones moves to the archive too, and `product.tree.dds.md` carries a Tombstone to it.
+- `check` is expected to fail in the middle of a cascade; run it after the origin is mutated, and never un-retire a member to quiet an intermediate failure.
 
-### A. Creating Business Requirements (`write.dds.md`)
+## 5. Before saving
 
-When defining a new Epic or global strategy, contributors use **RAG-Optimized Linguistics** to ensure perfect machine perception:
+1. Any technology named? Rewrite it as a business requirement.
+2. Any pronoun whose subject is named outside its section? Name the subject.
+3. Every KPI measurable, and none of them phrased as a rule?
+4. `check` passes.
 
-* **Structured Epics:** Documents follow a strict template detailing Business Vision, Target Personas, KPIs, and Agile User Stories (*"As a [Persona], I want to [Action], so that [Benefit]"*).
-* **The Pronoun Ban:** Vague pronouns ("It", "This") are forbidden. Always explicitly name the feature or persona.
-* **Header Constraints:** To maintain vector search integrity, headers must contain context (e.g., `### [Payment_Epic] Acceptance Criteria`) and never exceed `###` (H3) in depth.
+## 6. Getting started
 
-### B. Updating the Strategy (`update.dds.md`)
-
-Pivoting a business strategy requires extreme precision to prevent technical misalignment.
-
-* **Downward Impact Assessment:** When a KPI or User Story is updated, the system mandates a cascade check: *Does this business change require a database update? Does it change a UI component?* Corresponding tasks must be routed to the lower tiers.
-* **Atomic Updates & Log Rotation:** Updates are localized to specific semantic chunks. To protect AI token limits, changelogs are automatically rotated to the `.dds/archive/` once they exceed the entry threshold.
-
-### C. Abandoning an Epic (`deprecate.dds.md`)
-
-When a business idea is canceled, its technical debt must be ruthlessly purged.
-
-* **Cascade Destruction:** Unlike the Modules tier, which stops if dependencies exist, deleting a Product document *triggers* the deletion of all technical documents that depended on it. If the "Why" is dead, the "How" must die too.
-* **The Tombstone Protocol:** Abandoned strategies are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link] Crypto payment epic abandoned.`). This ensures AI agents know *why* a feature was canceled.
-
-## 4. Pre-Flight Self-Correction
-
-DDS requires all contributors (especially AI agents) to perform a self-audit before saving a Product document:
-
-1. Is the text completely free of technical jargon and coding frameworks?
-2. Are the KPIs explicitly measurable?
-3. Are there any isolated pronouns that could confuse an LLM?
-
-## 5. Getting Started
-
-If you are an AI Agent, read the `.dds/meta/manifesto.dds.md` to begin routing.
-If you are a Product Manager, start by reviewing `.dds/product/product.tree.dds.md` to understand the current global strategy before defining a new Epic.
-
-Welcome to strategy executed with absolute deterministic precision.
+AI agents start at `.dds/meta/manifesto.dds.md`. Product Managers start at `.dds/product/product.tree.dds.md` to see the current vision, constraints, and epics before writing a new one. `examples/task-tracker/.dds/product/` shows a filled tier, including a retired epic and its Tombstone.

@@ -1,0 +1,30 @@
+gate: strict requires an active product-constraints
+subtree pointer architecture/ expects
+dds_version 2.0.0 does not match manifesto 1.5.0
+tombstone target .dds/archive/product/old-goal.dds.md is not status: deprecated
+documents under .dds/archive/ must have status: deprecated
+forbidden field priority
+gate belongs only to .dds/tree.dds.md
+invalid tree line '* wrong bullet'
+indexed 2 time(s)
+id 'Product_Signup' is not lowercase kebab-case
+last_updated must be YYYY-MM-DD
+status must be one of
+is reserved for non-negotiable constraints
+kpi-secret.dds.md: indexed 0 time(s)
+tombstone target .dds/archive/modules/auth/nope.dds.md does not exist
+is outside this tree's folder
+dependency 'architecture-core-database' does not resolve
+active document depends on deprecated id 'modules-auth-legacy'
+must be quoted (a bare leading * is a YAML alias)
+locked_at must be ISO-8601
+lock present (locked_by=agent-7)
+orphan.tree.dds.md: tree is unreachable from .dds/tree.dds.md
+duplicate id 'modules-auth-login'
+auth.tree.dds.md: reachable from the root through more than one pointer chain
+gone.dds.md: deprecated document must live under .dds/archive/
+fake.tree.dds.md: files named *.tree.dds.md must have type: tree
+indented frontmatter line 'nested: value' (nested maps are forbidden)
+duplicate frontmatter key type
+stray.dds.md: module documents must live in a sub-folder of .dds/modules/ (STRICT_FOLDERIZATION)
+auth.tree.dds.md: invalid tree line '> ⚠️ DEPRECATED: banner in a live tree

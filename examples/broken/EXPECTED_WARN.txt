@@ -1,0 +1,5 @@
+header depth 4 exceeds the H3 convention
+changelog has 11 entries
+vision.dds.md: description is missing
+lacks the '> ... DEPRECATED:' banner
+original_path .dds/modules/auth/gone.dds.md still exists

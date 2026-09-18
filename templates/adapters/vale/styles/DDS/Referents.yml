@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' opens a sentence. If its referent is named outside this section, name the subject here (chunk-local referents)."
+level: suggestion
+scope: sentence
+ignorecase: false
+raw:
+  - '^(It|This|They|These|That)\b'
