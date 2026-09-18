@@ -124,6 +124,7 @@ class ClaudeHook(unittest.TestCase):
             self.assertEqual(h["type"], "command")
             self.assertIn("check --gate", h["command"])
             self.assertIn("exit 2", h["command"], "only exit 2 blocks a PreToolUse hook")
+            self.assertIn("DDS_PYTHON", h["command"], "interpreter fallback mirrors the git hook")
         self.assertEqual(len({h["command"] for h in self.handlers}), 1, "both forms run the same gate")
 
     def _run_hook(self, project_dir):
@@ -133,6 +134,19 @@ class ClaudeHook(unittest.TestCase):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(project_dir))
         proc = subprocess.run([bash, "-c", self.hook["command"]], env=env, capture_output=True, text=True, encoding="utf-8")
         return proc.returncode, proc.stdout + proc.stderr
+
+    def test_hook_blocks_with_a_truthful_message_when_no_interpreter_is_found(self):
+        bash = find_bash()
+        if not bash:
+            self.skipTest("Git Bash not available")
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(REPO), PATH="/usr/bin:/bin")
+        env.pop("DDS_PYTHON", None)
+        proc = subprocess.run([bash, "-c", self.hook["command"]], env=env, capture_output=True, text=True, encoding="utf-8")
+        if "python not found" not in proc.stdout + proc.stderr and proc.returncode == 0:
+            self.skipTest("a python is reachable from /usr/bin:/bin on this machine")
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        self.assertIn("python not found", proc.stdout + proc.stderr)
+        self.assertNotIn("clear the ERROR lines", proc.stdout + proc.stderr, "the failure message must not blame the documents")
 
     def test_hook_passes_on_template_and_blocks_on_broken(self):
         code, out = self._run_hook(REPO)

@@ -73,8 +73,9 @@ docs/                     human-facing guides: overview and one guide per tier
 ## Status
 
 - `v1.0.0` is the original release of the idea as prose. The current line is `dds_version: 2.0.0`, unreleased: a single schema, a validator, adapters, and examples. It breaks the 1.0 frontmatter.
-- Verified here: the template and the example pass the strict gate; `examples/broken/` reports every expected error; the test suite under `tests/` passes under Git Bash and PowerShell; the Claude Code hook command exits 2 on a failing tree; the git pre-commit blocks under `gate: strict` and warns under `gate: warn` in a real repository; the skill passes `skills-ref validate`.
-- Verified only on paper: the Claude Code hook's `if` pattern match (see `templates/adapters/README.md` for the one-command live check); Python 3.8 support (in the CI matrix, not run locally); the Vale rules.
+- Verified here: the template and the example pass the strict gate; `examples/broken/` reports every expected error; the test suite under `tests/` passes under Git Bash and PowerShell, and in CI on ubuntu and windows with Python 3.8 and 3.x; the Claude Code hook command exits 2 on a failing tree and when no interpreter is found; the git pre-commit blocks under `gate: strict` and warns under `gate: warn` in a real repository; the skill passes `skills-ref validate`.
+- Verified only on paper: the Claude Code hook's `if` pattern match (see `templates/adapters/README.md` for the one-command live check); the Vale rules.
+- Cost of one operation: the agent reads the manifesto, one tier's rules, and one protocol, about 16 KB (roughly 4k tokens). The full protocol corpus is 75 KB and is never read at once.
 - Not provided: semantic verification of code against documents. `check` proves structure and consistency; whether the code does what the document says is still a review.
 
 ## Development
