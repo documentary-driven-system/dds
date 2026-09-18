@@ -2,6 +2,8 @@
 
 # DDS — Documentation-Driven System
 
+[![ci](https://github.com/documentation-driven-system/dds/actions/workflows/ci.yml/badge.svg)](https://github.com/documentation-driven-system/dds/actions/workflows/ci.yml)
+
 A `.dds/` directory that describes what a system does, protocols that tell people and AI agents how to change that description, and a script that refuses a commit when the description is inconsistent.
 
 DDS is for repositories where humans and AI coding agents work side by side over a long time. Agents start every session with no memory; a repository that keeps its behaviour written down in one governed place gives every session the same starting point, and the commit gate keeps that place from drifting.
@@ -72,11 +74,21 @@ docs/                     human-facing guides: overview and one guide per tier
 
 ## Status
 
+- Renamed from `documentary-driven-system` on 2026-09-18 (spelling fix; same project, same single maintainer). The old URL redirects.
 - `v1.0.0` is the original release of the idea as prose. The current line is `dds_version: 2.0.0`, unreleased: a single schema, a validator, adapters, and examples. It breaks the 1.0 frontmatter.
 - Verified here: the template and the example pass the strict gate; `examples/broken/` reports every expected error; the test suite under `tests/` passes under Git Bash and PowerShell, and in CI on ubuntu and windows with Python 3.8 and 3.x; the Claude Code hook command exits 2 on a failing tree and when no interpreter is found; the git pre-commit blocks under `gate: strict` and warns under `gate: warn` in a real repository; the skill passes `skills-ref validate`.
 - Verified only on paper: the Claude Code hook's `if` pattern match (see `templates/adapters/README.md` for the one-command live check); the Vale rules.
 - Cost of one operation: the agent reads the manifesto, one tier's rules, and one protocol, about 16 KB (roughly 4k tokens). The full protocol corpus is 75 KB and is never read at once.
 - Not provided: semantic verification of code against documents. `check` proves structure and consistency; whether the code does what the document says is still a review.
+
+## Security and privacy
+
+- **No telemetry, no analytics, no network access.** `dds.py` imports only the Python standard library; its one `subprocess` call runs `git` locally for `check --sync`. Nothing phones home, and the hooks and CI job call nothing but that script.
+- **No credentials.** The script reads no API keys, tokens, or environment secrets; `DDS_PYTHON` (an interpreter path) is the only variable it honours.
+- **No external instructions.** `AGENTS.md`, `CLAUDE.md`, and `SKILL.md` contain no URLs and point only at files inside the repository; the skill declares no `allowed-tools`.
+- **What executes, and when.** The Claude Code hook in `.claude/settings.json` runs `dds.py check --gate` before a `git commit` without prompting; the git pre-commit hook runs the same check on commit; CI runs it on push. Nothing runs at install time, and nothing auto-updates.
+- **What it writes.** `check`, `impact`, and `tree` write nothing. `lock` / `unlock` (only with `locking: on`) write `locked_by` / `locked_at` into one document's frontmatter and a sidecar under `.dds/.locks/`. `tools/sync_copies.py` writes only into `examples/task-tracker/`.
+- **Turning a gate off.** Remove the `PreToolUse` block from `.claude/settings.json`; run `git config --unset core.hooksPath`; delete the workflow file. The documents and the script keep working without any gate.
 
 ## Development
 

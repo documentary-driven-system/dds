@@ -26,9 +26,16 @@ FORBIDDEN = [
     ("zero context", "marketing register"),
     ("guarantee", "no guarantees are made"),
     ("unbreakable", "marketing register"),
+    ("battle-tested", "unprovable claim"),
+    ("production-ready", "unprovable claim"),
+    ("state-of-the-art", "unprovable claim"),
+    ("best-in-class", "unprovable claim"),
 ]
 
 LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
+
+# exact phrases that may mention an otherwise forbidden word (provenance must name the old slug)
+ALLOWED_LITERALS = ["Renamed from `documentary-driven-system`"]
 
 
 class Wording(unittest.TestCase):
@@ -36,6 +43,8 @@ class Wording(unittest.TestCase):
         hits = []
         for path in PROSE:
             text = path.read_text(encoding="utf-8")
+            for literal in ALLOWED_LITERALS:
+                text = text.replace(literal, "")
             for phrase, why in FORBIDDEN:
                 for m in re.finditer(re.escape(phrase), text, flags=re.I):
                     line = text.count("\n", 0, m.start()) + 1
@@ -55,6 +64,15 @@ class Links(unittest.TestCase):
                 if not (path.parent / target).exists() and not (REPO / target).exists():
                     missing.append("%s -> %s" % (path.relative_to(REPO).as_posix(), target))
         self.assertEqual(missing, [], "\n" + "\n".join(missing))
+
+
+class Disclosure(unittest.TestCase):
+    """An evaluator searching README for telemetry or network behaviour must find an explicit statement, not silence."""
+
+    def test_readme_states_telemetry_network_and_write_behaviour(self):
+        text = (REPO / "README.md").read_text(encoding="utf-8").lower()
+        for word in ("telemetry", "network", "credentials", "what it writes", "turning a gate off"):
+            self.assertIn(word, text, "README must state its %s behaviour explicitly" % word)
 
 
 class Consistency(unittest.TestCase):
