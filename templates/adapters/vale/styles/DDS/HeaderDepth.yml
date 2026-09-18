@@ -1,0 +1,9 @@
+extends: existence
+message: "Header deeper than H3; flatten to '###' and use bold text or lists (write protocols, HEADER DEPTH LIMIT)."
+level: suggestion
+scope:
+  - heading.h4
+  - heading.h5
+  - heading.h6
+raw:
+  - '.+'

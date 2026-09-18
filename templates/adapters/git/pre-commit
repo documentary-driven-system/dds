@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+# DDS commit gate for humans. Install once per clone:
+#   git config core.hooksPath .githooks
+# then place this file at .githooks/pre-commit (executable). Behaviour follows `gate:` in .dds/tree.dds.md:
+#   gate: strict -> a failing check blocks the commit
+#   gate: warn   -> a failing check is printed and the commit proceeds (adoption phase)
+# AI agents get the strict gate from their own hook regardless of this setting.
+# If .dds/ lives below the git toplevel (monorepo), set DDS_ROOT to that directory.
+
+ROOT="${DDS_ROOT:-$(git rev-parse --show-toplevel)}"
+TREE="$ROOT/.dds/tree.dds.md"
+[ -f "$TREE" ] || exit 0
+
+GATE="$(sed -n 's/^gate:[[:space:]]*//p' "$TREE" | head -n 1 | tr -d '\r')"
+PY="${DDS_PYTHON:-python}"
+command -v "$PY" >/dev/null 2>&1 || PY=python3
+command -v "$PY" >/dev/null 2>&1 || { echo "DDS: python not found; set DDS_PYTHON" >&2; exit 1; }
+
+if "$PY" "$ROOT/.dds/meta/scripts/dds.py" --root "$ROOT" check --gate; then
+  exit 0
+fi
+
+if [ "$GATE" = "warn" ]; then
+  echo "DDS: check --gate failed; gate is 'warn', so this commit proceeds. Switch to gate: strict in .dds/tree.dds.md to block." >&2
+  exit 0
+fi
+echo "DDS: check --gate failed and gate is 'strict'. Clear the ERROR lines above, then commit again." >&2
+exit 1

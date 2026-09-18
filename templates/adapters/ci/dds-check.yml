@@ -1,0 +1,19 @@
+# DDS gate in CI: copy to .github/workflows/dds-check.yml.
+# CI is always strict (like agent hooks); the human pre-commit hook is where gate: warn applies.
+name: dds-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  dds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: DDS gate
+        run: python .dds/meta/scripts/dds.py check --gate
