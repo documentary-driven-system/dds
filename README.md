@@ -1,4 +1,4 @@
-![DDS Banner](docs/dds-banner.png)
+![DDS — Documentation-Driven System](docs/dds-banner.jpg)
 
 # DDS — Documentation-Driven System
 
