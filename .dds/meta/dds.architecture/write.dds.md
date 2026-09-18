@@ -1,10 +1,9 @@
 ---
-id: dds_architecture_write_protocol
-version: 1.0.0
-type: operational_directive
-dependencies: [meta/dds.architecture/rules.dds.md]
-priority: high
-last_updated: 2026-04-12
+id: meta-architecture-write
+type: meta
+status: active
+dependencies: [meta-architecture-rules]
+last_updated: 2026-09-18
 description: RAG-optimized protocol for formatting, structuring, and indexing database schemas, infrastructure, and API contracts.
 ---
 
@@ -28,7 +27,7 @@ The `architecture` tier supports both system-wide and service-specific documents
 
 To ensure semantic chunks retain exact technical meaning when vectorized, EXECUTOR MUST adhere to these STRICT rules:
 
-1. **THE PRONOUN BAN (ABSOLUTE):** EXECUTOR MUST NEVER use vague pronouns ("It", "This", "They").
+1. **CHUNK-LOCAL REFERENTS:** EXECUTOR MUST NOT use a pronoun ("It", "This", "They") whose referent lies outside the current `##`/`###` section; name the table, column, or service at least once per section.
    *Violation:* "It stores the user password."
    *Correct:* "The `User_Auth` table stores the hashed user password."
 2. **EXACT_DATA_TYPING:** When defining schemas, EXECUTOR MUST use explicit, platform-agnostic or specific data types (e.g., `VARCHAR(255)`, `UUIDv4`, `Float64`) rather than vague terms (e.g., "text", "number").
@@ -43,11 +42,12 @@ Every new `.dds.md` file in the `architecture` domain MUST adhere to the followi
 
 ```markdown
 ---
-id: architecture-[domain_or_service_name]
+id: architecture-[domain-or-service-name]
 type: architecture
-dependencies: [relative_paths_to_product_epics_dictating_this_architecture]
-last_updated: [YYYY-MM-DD]
 status: active
+dependencies: [product-EPIC-OR-GLOBAL-NAME]
+last_updated: [YYYY-MM-DD]
+description: [One sentence, reused by the index tree.]
 ---
 
 # [ARCHITECTURE_DOMAIN]: [TITLE]
@@ -71,11 +71,14 @@ status: active
 - [Boundary 2: e.g., Rate limiting is capped at 100 req/min per IP].
 ```
 
+`dependencies` holds the **ids** (never paths) of the `product` documents this architecture serves; `dds.py impact` resolves ids to files. `description` is the sentence the index tree shows.
+
 ## [4] RECURSIVE_INDEXING_ROUTINE
 
 Whenever a NEW file or folder is created, EXECUTOR MUST update the index trees to maintain the global memory map.
 
 **INDEX_UPDATE_STEPS:**
+IF a required tree file does not exist, CREATE it with `type: tree` frontmatter (`id: tree-<scope>`) per `schema.dds.md` [4]. Entry syntax: `- [path]: description`; subtree pointer: `- [folder/]: description`.
 IF a new GLOBAL document is created directly in `architecture/`:
 
    1. OPEN the main tree: `.dds/architecture/architecture.tree.dds.md`
@@ -98,6 +101,8 @@ AFTER generating the document and BEFORE saving, EXECUTOR MUST perform a self-au
 1. **Scan for Feature Logic:** Does the text explain *how* a specific UI button or algorithmic function works? -> IF YES, remove it. Feature logic belongs in the `modules` tier.
 2. **Scan for Exact Typing:** Are database columns defined with explicit data types? -> IF NO, refine them.
 3. **Scan for Header Depth:** Are there `####` headers? -> IF YES, flatten to `###` and use lists.
+
+**FINAL_CHECK:** RUN `python .dds/meta/scripts/dds.py check` on the saved files. IF it fails, fix the reported errors.
 
 *Output: EXECUTOR returns `STATUS: VALIDATED` ONLY IF all checks pass.*
 

@@ -1,10 +1,9 @@
 ---
-id: dds_product_domain_rules
-version: 1.0.0
-type: domain_dispatcher
-dependencies: [meta/manifesto.dds.md]
-priority: high
-last_updated: 2026-04-12
+id: meta-product-rules
+type: meta
+status: active
+dependencies: [meta-manifesto]
+last_updated: 2026-09-18
 description: Operational routing and strategic constraints for the Product (Business/Requirements) domain.
 ---
 
@@ -23,11 +22,13 @@ Before taking any action, EXECUTOR MUST acknowledge the following constraints sp
 1. **TECHNOLOGY_AGNOSTICISM:**
    EXECUTOR MUST NOT include technical implementation details (e.g., specific libraries, database schemas, or code snippets) in the `product` domain. Focus MUST remain on "What" the system does and "Why," not "How."
 2. **STAKEHOLDER_CLARITY:**
-   Documentation MUST be written in a language accessible to non-technical stakeholders while maintaining the "Machine Perception" standards (Pronoun Ban, Semantic Clarity).
-3. **ABSOLUTE_AUTHORITY:**
-   The `product` tier is the top of the Truth Hierarchy. Any change here triggers a mandatory review of `architecture` and `modules` tiers to ensure downward alignment.
+   Documentation MUST be written in a language accessible to non-technical stakeholders while maintaining the "Machine Perception" standards (chunk-local referents, semantic clarity).
+3. **TOP_OF_THE_RULE_HIERARCHY:**
+   The `product` tier is the top of the Truth Hierarchy for RULES; non-negotiable constraints sit above every tier (manifesto [1].0). Any change here triggers a mandatory review of `architecture` and `modules` tiers to ensure downward alignment.
 4. **FLEXIBLE_HIERARCHY:**
    Unlike the `modules` tier, the `product` tier allows high-level root documents (e.g., `vision.dds.md`) directly in the root directory if they represent global project goals. Folderization is only mandatory for complex feature sets or epics.
+5. **KPIS_ARE_TARGETS:**
+   A KPI is a measurable target, never a rule. EXECUTOR MUST NOT cite a KPI to override an `architecture` or `modules` rule, and MUST NEVER cite one against `product-constraints`; such a conflict is escalated to a human.
 
 ## [2] ACTION_ROUTING_MATRIX
 
@@ -45,7 +46,7 @@ EXECUTOR MUST evaluate the requested ACTION and follow ONE of the routing paths 
 
 **IF ACTION === "DELETE" or "DEPRECATE" (A project goal or business feature is abandoned):**
 
-- `NEXT_STEP`: EXECUTOR MUST read `.dds/meta/dds.product/deprecate.dds.md` to trigger a massive Truth Hierarchy cleanup across architecture and modules.
+- `NEXT_STEP`: EXECUTOR MUST read `.dds/meta/dds.product/deprecate.dds.md` to trigger the downward cascade across architecture and modules.
 - *EXECUTOR MUST STOP reading this file and proceed to the target guide.*
 
 # END_OF_DIRECTIVE

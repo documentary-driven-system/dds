@@ -1,10 +1,9 @@
 ---
-id: dds_modules_write_protocol
-version: 1.4.0
-type: operational_directive
-dependencies: [meta/dds.modules/rules.dds.md]
-priority: high
-last_updated: 2026-04-12
+id: meta-modules-write
+type: meta
+status: active
+dependencies: [meta-modules-rules]
+last_updated: 2026-09-18
 description: RAG-optimized, machine-readable protocol for folderization, semantic formatting, recursive indexing, and pre-flight self-correction of modules.
 ---
 
@@ -17,7 +16,7 @@ EXECUTOR MUST process operations sequentially: FOLDERIZE -> FORMAT (RAG-OPTIMIZE
 
 ## [1] FOLDERIZATION_PROTOCOL (WITH NESTING)
 
-EXECUTOR MUST NOT place feature documents directly into `.dds/modules/`. Every distinct feature MUST have its own sub-directory.
+EXECUTOR MUST NOT place feature documents directly into `.dds/modules/` (only `modules.tree.dds.md` lives there). Every distinct feature MUST have its own sub-directory.
 IF a domain is highly complex, EXECUTOR MAY create nested sub-domains to maintain modularity.
 
 1. `TARGET_PATH` = `.dds/modules/[domain_name]/` OR `.dds/modules/[domain_name]/[sub_domain]/` (e.g., `modules/payment/stripe/`)
@@ -25,17 +24,17 @@ IF a domain is highly complex, EXECUTOR MAY create nested sub-domains to maintai
 
 ## [2] RAG_OPTIMIZED_LINGUISTICS (MACHINE PERCEPTION)
 
-To ensure semantic chunks retain absolute meaning when vectorized or isolated, EXECUTOR MUST adhere to these STRICT linguistic rules:
+To ensure each section keeps its meaning when retrieved alone, EXECUTOR MUST adhere to these linguistic rules:
 
-1. **THE PRONOUN BAN (ABSOLUTE):** EXECUTOR MUST NEVER use vague pronouns (e.g., "It", "This", "They", "These").
+1. **CHUNK-LOCAL REFERENTS:** EXECUTOR MUST NOT use a pronoun ("It", "This", "They", "These") whose referent lies outside the current `##`/`###` section; name the component at least once per section before any pronoun.
    *Violation:* "This component processes the data."
    *Correct:* "The `AuthLogin` component processes the user payload."
 2. **CONTEXT-BEARING HEADERS:**
    Headers MUST encapsulate the domain context.
    *Violation:* `### Error Handling`
    *Correct:* `### [Auth_Login] Module: Error Handling Constraints`
-3. **TONE & VOICE:** EXECUTOR MUST use imperative verbs and active voice. Passive voice is FORBIDDEN.
-4. **HEADER DEPTH LIMIT (MAX H3):** EXECUTOR MUST NOT use headers deeper than `###` (Heading 3). Deeply nested headers cause context fragmentation during RAG vector chunking. Use bold text or lists for further hierarchy.
+3. **TONE & VOICE:** Prefer imperative verbs and active voice. Use passive voice only when the actor is unknown or irrelevant.
+4. **HEADER DEPTH LIMIT (MAX H3):** EXECUTOR MUST NOT use headers deeper than `###` (Heading 3). This is a convention that keeps every section large enough to stand alone when retrieval tools split on headings. Use bold text or lists for further hierarchy.
 
 ## [3] MANDATORY_STRUCTURED_TEMPLATE
 
@@ -45,11 +44,13 @@ Every new `.dds.md` file MUST adhere strictly to the following layout. XML-like 
 
 ```markdown
 ---
-id: [domain_name]-[feature_name]
+id: modules-[domain-name]-[feature-name]
 type: module
-dependencies: [relative_paths_to_related_architecture_or_product_files]
-last_updated: [YYYY-MM-DD]
 status: active
+dependencies: [architecture-DOMAIN-NAME, product-EPIC-NAME]
+sources: [src/DOMAIN-NAME/**]
+last_updated: [YYYY-MM-DD]
+description: [One sentence, reused by the index tree.]
 ---
 
 # [MODULE_NAME]: [FEATURE_TITLE]
@@ -68,11 +69,14 @@ The [Specific_Component_Name] is responsible for [Specific_Action] within the [D
 2. [Subject] validates [Condition].
 ```
 
+`dependencies` holds the **ids** (never paths) of the `architecture` and `product` documents this module obeys. `sources` (optional) lists the code globs this document governs; `dds.py check --coverage` and `--sync` use it. `description` is the sentence the index tree shows.
+
 ## [4] RECURSIVE_INDEXING_ROUTINE (NESTED TREE PROPAGATION)
 
 Whenever a NEW file or folder is created, EXECUTOR MUST update the index trees RECURSIVELY from the deepest level up to the root.
 
 **INDEX_UPDATE_STEPS:**
+IF a required tree file does not exist, CREATE it with `type: tree` frontmatter (`id: tree-<scope>`) per `schema.dds.md` [4]. Entry syntax: `- [path]: description`; subtree pointer: `- [folder/]: description`.
 IF a new `.dds.md` file is added to an EXISTING folder:
 
    1. OPEN local tree: `[TARGET_PATH]/[folder_name].tree.dds.md`
@@ -101,9 +105,11 @@ AFTER generating the document content and BEFORE saving or committing, EXECUTOR 
 
 **VALIDATION_STEPS:**
 
-1. **Scan for Pronouns:** Does the text contain isolated "It", "This", or "They"? -> IF YES, rewrite to specify the exact noun.
+1. **Scan for Referents:** Does any pronoun refer to a subject named outside its section? -> IF YES, name the subject in that section.
 2. **Scan for Header Depth:** Are there any `####` or deeper headers? -> IF YES, flatten to `###` and use lists or bold text instead.
 3. **Scan for Contextless Headers:** Do all `##` and `###` headers explicitly contain the module/feature name? -> IF NO, append the context.
+
+**FINAL_CHECK:** RUN `python .dds/meta/scripts/dds.py check` on the saved files. IF it fails, fix the reported errors.
 
 *Output: EXECUTOR returns `STATUS: VALIDATED` ONLY IF all checks pass.*
 

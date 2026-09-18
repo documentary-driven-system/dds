@@ -1,10 +1,9 @@
 ---
-id: dds_architecture_domain_rules
-version: 1.0.0
-type: domain_dispatcher
-dependencies: [meta/manifesto.dds.md]
-priority: high
-last_updated: 2026-04-12
+id: meta-architecture-rules
+type: meta
+status: active
+dependencies: [meta-manifesto]
+last_updated: 2026-09-18
 description: Operational routing and structural constraints for the Architecture (Infrastructure/Data) domain.
 ---
 
@@ -43,7 +42,7 @@ EXECUTOR MUST evaluate the requested ACTION and follow ONE of the routing paths 
 
 **IF ACTION === "DELETE" or "DEPRECATE" (Retiring a database table or shutting down a service):**
 
-- `NEXT_STEP`: EXECUTOR MUST read `.dds/meta/dds.architecture/deprecate.dds.md` to trigger the technical cascade destruction across the `modules` tier.
+- `NEXT_STEP`: EXECUTOR MUST read `.dds/meta/dds.architecture/deprecate.dds.md` to trigger the downward cascade across the `modules` tier.
 - *EXECUTOR MUST STOP reading this file and proceed to the target guide.*
 
 # END_OF_DIRECTIVE

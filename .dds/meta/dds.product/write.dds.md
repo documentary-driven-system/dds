@@ -1,10 +1,9 @@
 ---
-id: dds_product_write_protocol
-version: 1.0.0
-type: operational_directive
-dependencies: [meta/dds.product/rules.dds.md]
-priority: high
-last_updated: 2026-04-12
+id: meta-product-write
+type: meta
+status: active
+dependencies: [meta-product-rules]
+last_updated: 2026-09-18
 description: RAG-optimized protocol for formatting, structuring, and indexing business requirements, user stories, and product epics.
 ---
 
@@ -22,16 +21,18 @@ Unlike the `modules` tier, the `product` tier supports both Global and Epic-spec
 1. **GLOBAL_DOCUMENTS:** High-level strategic files (e.g., `vision.dds.md`, `target-audience.dds.md`) MAY be placed directly in the root `.dds/product/` directory.
 2. **EPIC_DOCUMENTS:** Specific business features or user journeys MUST be isolated in sub-directories.
    `TARGET_PATH` = `.dds/product/epics/[epic_name]/` (e.g., `product/epics/user-onboarding/`)
-3. FILE_NAME = `[kebab-case-name].dds.md`
+3. **CONSTRAINTS_DOCUMENT:** `.dds/product/constraints.dds.md` (id `product-constraints`) lists the non-negotiable constraints (security, legal and compliance, safety, physical) as imperative rules, each with its source (law, standard, contract, or policy). No KPI or tier may override an entry (manifesto [1].0). `gate: strict` requires this document to be `active`.
+4. FILE_NAME = `[kebab-case-name].dds.md`
 
 ## [2] STRATEGIC_LINGUISTICS (MACHINE PERCEPTION)
 
-To ensure semantic chunks retain absolute meaning without confusing the AI with implementation details, EXECUTOR MUST adhere to these STRICT rules:
+To ensure each section keeps its meaning when retrieved alone, without confusing the AI with implementation details, EXECUTOR MUST adhere to these rules:
 
-1. **TECHNOLOGY_AGNOSTICISM (ABSOLUTE):** EXECUTOR MUST NOT mention specific coding languages, database types (e.g., SQL, MongoDB), or libraries (e.g., React, Tailwind). Use business terms: "Data Storage", "User Interface".
-2. **THE PRONOUN BAN:** EXECUTOR MUST NEVER use vague pronouns ("It", "This", "They"). Always explicitly name the Persona or Feature.
+1. **TECHNOLOGY_AGNOSTICISM:** EXECUTOR MUST NOT mention specific coding languages, database types (e.g., SQL, MongoDB), or libraries (e.g., React, Tailwind). Use business terms: "Data Storage", "User Interface".
+2. **CHUNK-LOCAL REFERENTS:** EXECUTOR MUST NOT use a pronoun ("It", "This", "They") whose referent lies outside the current `##`/`###` section, because a section may be retrieved alone. Name the Persona or Feature at least once per section before any pronoun.
 3. **CONTEXT-BEARING HEADERS:** Headers MUST encapsulate the business context (e.g., `### [B2B_Dashboard] Success Metrics`).
 4. **HEADER DEPTH LIMIT:** MAX H3 (`###`). Use bolding or bullet points for deeper hierarchies.
+5. **KPIS_ARE_TARGETS:** Write KPIs as measurable targets (`[Metric]: [Target]`), never as rules. A KPI resolves no conflict and overrides no document.
 
 ## [3] MANDATORY_STRUCTURED_TEMPLATE
 
@@ -41,11 +42,12 @@ Every new `.dds.md` file in the `product` domain MUST adhere to the following bu
 
 ```markdown
 ---
-id: product-[epic_or_global_name]
+id: product-[epic-or-global-name]
 type: product
+status: active
 dependencies: []
 last_updated: [YYYY-MM-DD]
-status: active
+description: [One sentence, reused by the index tree.]
 ---
 
 # [PRODUCT/EPIC_NAME]: [TITLE]
@@ -68,11 +70,14 @@ status: active
 </user_stories>
 ```
 
+`dependencies` stays empty: the `product` tier is the top of the Truth Hierarchy. `description` is the sentence the index tree shows.
+
 ## [4] RECURSIVE_INDEXING_ROUTINE
 
 Whenever a NEW file or folder is created, EXECUTOR MUST update the index trees to maintain the global memory.
 
 **INDEX_UPDATE_STEPS:**
+IF a required tree file does not exist, CREATE it with `type: tree` frontmatter (`id: tree-<scope>`) per `schema.dds.md` [4]. Entry syntax: `- [path]: description`; subtree pointer: `- [folder/]: description`.
 IF a new GLOBAL document is created directly in `product/`:
 
    1. OPEN the main tree: `.dds/product/product.tree.dds.md`
@@ -93,8 +98,10 @@ AFTER generating the document and BEFORE saving, EXECUTOR MUST perform a self-au
 **VALIDATION_STEPS:**
 
 1. **Scan for Tech-Agnosticism:** Does the text contain coding frameworks, DB schema names, or API endpoint routes? -> IF YES, rewrite into abstract business requirements.
-2. **Scan for Pronouns:** Are there isolated pronouns ("It", "This")? -> IF YES, replace with exact nouns.
+2. **Scan for Referents:** Does any pronoun refer to a subject named outside its section? -> IF YES, name the subject in that section.
 3. **Scan for KPIs:** Are the goals measurable? -> IF NO, refine the KPIs.
+
+**FINAL_CHECK:** RUN `python .dds/meta/scripts/dds.py check` on the saved files. IF it fails, fix the reported errors.
 
 *Output: EXECUTOR returns `STATUS: VALIDATED` ONLY IF all checks pass.*
 

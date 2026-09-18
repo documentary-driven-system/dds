@@ -1,4 +1,4 @@
-# Documentary Driven System (DDS)
+# Documentation-Driven System (DDS)
 
 **The Universal Open-Source Infrastructure for Machine-Perceptible & Enterprise-Grade Documentation:**
 
@@ -6,7 +6,7 @@
 
 ## 1. Introduction: What is DDS?
 
-The **Documentary Driven System (DDS)** is a universal, open-source documentation infrastructure designed for modern, high-complexity software projects. It bridges the critical gap between human developers, product managers, and Artificial Intelligence (AI) agents.
+The **Documentation-Driven System (DDS)** is a universal, open-source documentation infrastructure designed for modern, high-complexity software projects. It bridges the critical gap between human developers, product managers, and Artificial Intelligence (AI) agents.
 
 Unlike traditional documentation that quickly becomes outdated or scattered, DDS operates as a **State Machine**. It is a structured, deterministically routed, and hierarchical framework that ensures documentation is the absolute Single Source of Truth (SSoT) for the entire lifecycle of a project—from business vision to database schemas and modular code logic.
 
@@ -39,21 +39,27 @@ DDS is a living system. A change at the top (`Product`) triggers an automatic **
 
 ## 3. The Global Architecture & Distributed Memory
 
-The DDS framework utilizes a distributed memory model. It is anchored by a global entry point for AI crawlers, followed by isolated, highly specialized domains within the `.dds/` root directory.
+The DDS framework utilizes a distributed memory model. It is anchored by an always-on entry file for AI agents (`AGENTS.md`), followed by isolated, highly specialized domains within the `.dds/` root directory.
 
 ```text
 / (Project Root)
-├── llms.txt                    # The Global AI Entry Point (Crawler Guide)
+├── AGENTS.md                   # Always-on entry point for AI agents (CLAUDE.md imports it).
 └── .dds/
-    ├── meta/                   # The System Brain: Dispatchers, rules, and templates.
-    │   └── manifesto.dds.md    # The Master Routing Protocol.
+    ├── meta/                   # The System Brain: constitution, schema, protocols, tooling.
+    │   ├── manifesto.dds.md    # Constitution + Master Routing Protocol.
+    │   ├── schema.dds.md       # The single frontmatter / id / tree grammar.
+    │   ├── adopt.dds.md        # Bringing DDS into an existing codebase.
+    │   ├── dds.product/        # rules / write / update / deprecate for the Product tier.
+    │   ├── dds.architecture/   # Same four protocols for the Architecture tier.
+    │   ├── dds.modules/        # Same four protocols for the Modules tier.
+    │   └── scripts/dds.py      # check | impact | lock | unlock | tree (stdlib only).
     ├── product/                # The Business Core: Epics, user stories, KPIs.
     │   └── product.tree.dds.md # Local index for the Product domain.
     ├── architecture/           # The Foundation: DB schemas, tech stack, APIs.
-    │   └── arch.tree.dds.md    # Local index for the Architecture domain.
+    │   └── architecture.tree.dds.md # Local index for the Architecture domain.
     ├── modules/                # The Implementation: Feature logic, state management.
     │   └── modules.tree.dds.md # Local index for the Modules domain.
-    ├── archive/                # The Graveyard: Deprecated features and rotated logs.
+    ├── archive/                # The Graveyard: Deprecated documents, kept for history.
     └── tree.dds.md             # The Master Root Index (Links all domain trees).
 ```
 
@@ -81,12 +87,12 @@ Owned by Software Engineers and Coder AI Agents. This tier houses the specific l
 DDS is engineered to survive the chaos of enterprise scaling and multi-agent AI environments. It includes built-in defense mechanisms:
 
 * **YAML Frontmatter (The System Heartbeat):** Every `.dds.md` file begins with a strict YAML block dictating its `id`, `status`, `dependencies`, and `last_updated` state. This makes cross-referencing machine-readable.
-* **Pre-Flight Self-Correction (Validation Loop):** Before saving any document, AI agents must run a self-audit (e.g., *"Did I use vague pronouns? Is this header too deep?"*). This guarantees zero context degradation over time.
-* **Concurrency Control (File Locking):** Prevents race conditions by locking files (`status: locked_by_[id]`) when an AI or human is updating a document, complete with a 40-minute timeout safeguard.
+* **Pre-Flight Self-Correction (Validation Loop):** Before saving any document, AI agents must run a self-audit (e.g., *"Did I use vague pronouns? Is this header too deep?"*). This limits context degradation over time.
+* **Concurrency Control (File Locking):** Prevents race conditions by locking files (`locked_by` + `locked_at` fields, written by `dds.py lock`) when an AI or human is updating a document, complete with a 40-minute timeout safeguard.
 * **Distributed Tree Indexing:** Prevents "orphaned" knowledge. The indexing is recursive and distributed; every folder has its own `.tree.dds.md`, which links upward to the Master Root Tree.
 * **The Tombstone Protocol:** Deleted features are not erased; they leave a "Tombstone" pointer to the archive. This prevents AI agents from experiencing "Dangling References" (404 Context Errors) and explains *why* a feature is gone.
-* **Log Rotation:** To protect LLM Context Windows from token overflow, file changelogs automatically rotate to the `.dds/archive/` directory once they exceed a 10-entry threshold.
-* **RAG-Optimized Linguistics:** Strict linguistic constraints (e.g., The Pronoun Ban, Maximum H3 Header Depth) ensure that text chunking for Vector Databases yields 100% semantic accuracy.
+* **Capped Changelogs:** Each document keeps at most 10 changelog entries; older entries are trimmed and remain in `git log`. `dds.py check` warns above the cap.
+* **RAG-Optimized Linguistics:** Strict linguistic constraints (e.g., The Pronoun Ban, Maximum H3 Header Depth) keep each chunk self-describing when text is split for retrieval.
 
 ## 5. Open Source & Contribution
 

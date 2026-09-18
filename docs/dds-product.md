@@ -6,7 +6,7 @@
 
 ## 1. Introduction
 
-Welcome to the **Product Tier** of the Documentary Driven System (DDS).
+Welcome to the **Product Tier** of the Documentation-Driven System (DDS).
 
 If the Architecture tier is the "Where" and the Modules tier is the "How," the **Product tier is the "Why."** This directory is the absolute top of the Truth Hierarchy. Owned by Product Managers, Business Analysts, and AI Strategy Agents, this tier houses the business vision, user personas, Key Performance Indicators (KPIs), and detailed User Stories.
 
@@ -45,14 +45,14 @@ When defining a new Epic or global strategy, contributors use **RAG-Optimized Li
 Pivoting a business strategy requires extreme precision to prevent technical misalignment.
 
 * **Downward Impact Assessment:** When a KPI or User Story is updated, the system mandates a cascade check: *Does this business change require a database update? Does it change a UI component?* Corresponding tasks must be routed to the lower tiers.
-* **Atomic Updates & Log Rotation:** Updates are localized to specific semantic chunks. To protect AI token limits, changelogs are automatically rotated to the `.dds/archive/` once they exceed the entry threshold.
+* **Atomic Updates & Capped Changelog:** Updates are localized to specific semantic chunks. Changelogs keep at most 10 entries; older ones are trimmed and stay in `git log`.
 
 ### C. Abandoning an Epic (`deprecate.dds.md`)
 
 When a business idea is canceled, its technical debt must be ruthlessly purged.
 
 * **Cascade Destruction:** Unlike the Modules tier, which stops if dependencies exist, deleting a Product document *triggers* the deletion of all technical documents that depended on it. If the "Why" is dead, the "How" must die too.
-* **The Tombstone Protocol:** Abandoned strategies are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link] Crypto payment epic abandoned.`). This ensures AI agents know *why* a feature was canceled.
+* **The Tombstone Protocol:** Abandoned strategies are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link]: Crypto payment epic abandoned.`). This ensures AI agents know *why* a feature was canceled.
 
 ## 4. Pre-Flight Self-Correction
 

@@ -2,9 +2,9 @@
 
 # DDS
 
-## Documentary Driven System
+## Documentation-Driven System
 
-DDS (Documentary Driven System) is an enterprise documentation methodology that transforms documentation from a passive reference into a governing system layer across the software lifecycle. In this model, documentation is not only descriptive; it is the primary mechanism for decision-making, change control, and implementation consistency.
+DDS (Documentation-Driven System) is an enterprise documentation methodology that transforms documentation from a passive reference into a governing system layer across the software lifecycle. In this model, documentation is not only descriptive; it is the primary mechanism for decision-making, change control, and implementation consistency.
 
 ## Executive Summary
 
@@ -29,7 +29,7 @@ These tiers operate like a state machine with routing protocols under `.dds/meta
 - Establishes a Single Source of Truth (SSoT) at enterprise scale.
 - Reduces misalignment across business, architecture, and module layers.
 - Delivers machine-perceivable, chunkable, and consistent knowledge structures for AI agents.
-- Provides traceability, locking, log rotation, and dependency analysis for change management.
+- Provides traceability, optional locking, capped changelogs, and dependency analysis for change management.
 - Prevents knowledge loss during feature retirement through the Tombstone protocol.
 
 ## Core Principles
@@ -47,11 +47,12 @@ These tiers operate like a state machine with routing protocols under `.dds/meta
 - Product tier: [docs/dds-product.md](docs/dds-product.md)
 - Architecture tier: [docs/dds-architecture.md](docs/dds-architecture.md)
 - Modules tier: [docs/dds-modules.md](docs/dds-modules.md)
-- AI system routing: [docs/llms.txt](docs/llms.txt)
 
 ### Meta Routing and Rules (`.dds/meta/`)
 
-- Master manifesto: [.dds/meta/manifesto.dds.md](.dds/meta/manifesto.dds.md)
+- Master manifesto (constitution + routing): [.dds/meta/manifesto.dds.md](.dds/meta/manifesto.dds.md)
+- Schema (frontmatter, ids, trees): [.dds/meta/schema.dds.md](.dds/meta/schema.dds.md)
+- Adoption protocol (existing codebases): [.dds/meta/adopt.dds.md](.dds/meta/adopt.dds.md)
 
 Product domain:
 - [.dds/meta/dds.product/rules.dds.md](.dds/meta/dds.product/rules.dds.md)

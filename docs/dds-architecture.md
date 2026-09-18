@@ -6,7 +6,7 @@
 
 ## 1. Introduction
 
-Welcome to the **Architecture Tier** of the Documentary Driven System (DDS).
+Welcome to the **Architecture Tier** of the Documentation-Driven System (DDS).
 
 If the Product tier is the "Why" and the Modules tier is the "How," the **Architecture tier is the "Where and the Boundaries."** Owned by System Architects, DevOps Engineers, and DBA AI Agents, this directory houses the foundational blueprints of the system: Database Entity-Relationship Diagrams (ERDs), global API contracts, CI/CD pipelines, and the global technology stack.
 
@@ -46,14 +46,14 @@ Updating a database column or changing an API endpoint requires a strict **Two-W
 
 * **Upward Check:** Does this structural change violate an existing Product KPI or Business Rule? If yes, the update is blocked until the business rule is renegotiated.
 * **Downward Cascade:** Does this schema change affect existing code? If yes, the system automatically routes update tasks to the corresponding Modules documents.
-* **Concurrency & Logging:** Updates are locked during execution (with a 40-minute timeout safeguard). Changelogs are strictly maintained to track schema versioning and are automatically rotated to the archive to protect AI token limits.
+* **Concurrency & Logging:** When `locking: on` is set, updates are locked during execution (`locked_by` + `locked_at`, 40-minute takeover computed by `dds.py`). Changelogs track schema versioning and keep at most 10 entries.
 
 ### C. Retiring Infrastructure (`deprecate.dds.md`)
 
 When a database table or microservice is shut down, its removal must be handled surgically.
 
 * **The Two-Way Deprecation Gate:** Infrastructure cannot be deleted if an active Product document still requires it. If cleared by Product, the deprecation triggers a cascade destruction of dependent code in the Modules tier.
-* **The Tombstone Protocol:** Retired schemas are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link] Legacy Auth DB retired.`). This ensures AI agents do not hallucinate about missing tables.
+* **The Tombstone Protocol:** Retired schemas are moved to the archive, and a "Tombstone" pointer is left in the Master Index (e.g., `- [DEPRECATED -> archive_link]: Legacy Auth DB retired.`). This ensures AI agents do not hallucinate about missing tables.
 
 ## 4. Pre-Flight Self-Correction
 

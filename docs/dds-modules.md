@@ -6,7 +6,7 @@
 
 ## 1. Introduction
 
-Welcome to the **Modules Tier** of the Documentary Driven System (DDS).
+Welcome to the **Modules Tier** of the Documentation-Driven System (DDS).
 
 If the Product tier is the "Why" and the Architecture tier is the "Where," the **Modules tier is the "How."** This directory is owned by Software Engineers and Autonomous Coding Agents. It houses the granular, feature-specific documentation of the application—covering everything from UI component logic to state management and data validation rules.
 
@@ -45,16 +45,16 @@ When documenting a new feature, contributors must use **RAG-Optimized Linguistic
 
 Code changes rapidly, and documentation must keep pace without breaking the system.
 
-* **Concurrency Control (File Locking):** Before editing, contributors lock the file (`status: locked_by_[user/agent]`). If an agent crashes during an update, a **40-Minute Timeout Override** ensures the file does not remain deadlocked forever.
+* **Concurrency Control (File Locking):** Before editing, contributors lock the file (`locked_by` + `locked_at` fields, written by `dds.py lock`). If an agent crashes during an update, a **40-Minute Timeout Override** ensures the file does not remain deadlocked forever.
 * **Atomic Updates:** Do not rewrite the entire file. Use targeted, localized `diff` updates to modify only the relevant semantic chunks.
-* **Log Rotation:** To prevent AI memory overflow (Token Limit breaches), file changelogs are automatically rotated. Once a document exceeds 10 update logs, the oldest entries are moved to the `.dds/archive/` directory.
+* **Capped Changelog:** A document keeps at most 10 changelog entries. Older entries are trimmed; `git log -- <file>` holds the full history.
 
 ### C. Deprecating a Module (`deprecate.dds.md`)
 
 Features die, but their memory must be managed safely to prevent AI hallucinations.
 
 * **Dependency Pre-Flight:** Before deletion, the system checks if other active modules depend on the target feature.
-* **The Tombstone Protocol:** Never physically delete an index line from a tree. Instead, leave a "Tombstone" (e.g., `- [DEPRECATED -> archive_link] Feature X removed`). This tells the AI *why* a file is missing, preventing Dangling References and 404 Context Errors.
+* **The Tombstone Protocol:** Never physically delete an index line from a tree. Instead, leave a "Tombstone" (e.g., `- [DEPRECATED -> archive_link]: Feature X removed`). This tells the AI *why* a file is missing, preventing Dangling References and 404 Context Errors.
 
 ## 4. Reverse Documentation (Code to Abstraction)
 

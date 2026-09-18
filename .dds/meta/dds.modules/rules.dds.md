@@ -1,10 +1,9 @@
 ---
-id: dds_modules_domain_rules
-version: 1.0.0
-type: domain_dispatcher
-dependencies: [meta/manifesto.dds.md]
-priority: high
-last_updated: 2026-04-11
+id: meta-modules-rules
+type: meta
+status: active
+dependencies: [meta-manifesto]
+last_updated: 2026-09-18
 description: Operational routing and strict constraints for the Modules (Code/Feature) domain.
 ---
 
@@ -24,7 +23,7 @@ Before taking any action, EXECUTOR MUST acknowledge the following constraints sp
    EXECUTOR MUST NOT create a `.dds.md` file for every single source code file (e.g., `login.tsx` -> `login.dds.md` is FORBIDDEN).
    EXECUTOR MUST document based on LOGICAL FEATURES (e.g., UI, logic, and style files for 'Login' all map to a single `.dds/modules/auth/login.dds.md`).
 2. **STRICT_FOLDERIZATION:**
-   EXECUTOR MUST NOT place any file directly in the `.dds/modules/` root. Every feature MUST reside inside a sub-folder representing its domain (e.g., `.dds/modules/[feature_name]/`).
+   EXECUTOR MUST NOT place any document directly in the `.dds/modules/` root; the index file `modules.tree.dds.md` is the only exception. Every feature MUST reside inside a sub-folder representing its domain (e.g., `.dds/modules/[feature_name]/`).
 3. **HIERARCHICAL_OBEDIENCE:**
    Module documentation represents the lowest level of the Truth Hierarchy. EXECUTOR MUST NOT write logic here that contradicts `architecture` or `product` rules.
 
