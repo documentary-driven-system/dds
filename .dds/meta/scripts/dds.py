@@ -482,14 +482,14 @@ def iter_code_files(root):
 
 
 def check_coverage(root, docs, report):
+    """Adoption report: which code files no module document governs. Works before the first module document exists."""
     globs = module_globs(docs)
-    if not globs:
-        report.info("coverage", "no module document declares sources:; nothing to measure")
-        return
     files = list(iter_code_files(root))
     if not files:
         report.info("coverage", "no code files found under %s" % root)
         return
+    if not globs:
+        report.info("coverage", "no module document declares sources: yet; every code file below is ungoverned (adopt.dds.md [2])")
     covered, uncovered_dirs = 0, Counter()
     for f in files:
         if any(rx.match(f) for _, rxs in globs for rx in rxs):

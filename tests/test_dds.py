@@ -211,6 +211,18 @@ class SyncAndCoverage(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
+    def test_coverage_reports_everything_ungoverned_before_the_first_module_document(self):
+        """adopt.dds.md [2].4 relies on this report on day one, when no module document exists yet."""
+        import shutil as _sh
+        _sh.rmtree(self.tmp / ".dds" / "modules" / "auth")
+        mt = self.tmp / ".dds" / "modules" / "modules.tree.dds.md"
+        mt.write_text(mt.read_text(encoding="utf-8").replace("\n- [auth/]: Auth domain.\n", "\n"), encoding="utf-8")
+        code, out = run("check", "--coverage", root=self.tmp)
+        self.assertEqual(code, 0, out)
+        self.assertIn("0/2 code files covered by module sources (0%)", out)
+        self.assertIn("no module document declares sources: yet", out)
+        self.assertIn("WARN: coverage: src/auth: 1 code file(s) not governed", out)
+
     def test_coverage_reports_ungoverned_directory(self):
         code, out = run("check", "--coverage", root=self.tmp)
         self.assertEqual(code, 0, out)
