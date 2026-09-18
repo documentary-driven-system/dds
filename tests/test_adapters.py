@@ -77,6 +77,22 @@ class SkillFile(unittest.TestCase):
         self.assertIn('dds_version: "%s"' % version, self.text)
 
 
+class RepositoryDogfood(unittest.TestCase):
+    """The DDS repository installs its own adapters: entry files, hook, and the skill in both placements."""
+
+    def test_skill_installed_in_both_placements_and_identical_to_template(self):
+        import filecmp
+        for placement in (REPO / ".claude" / "skills" / "dds" / "SKILL.md", REPO / ".agents" / "skills" / "dds" / "SKILL.md"):
+            with self.subTest(placement=str(placement.relative_to(REPO))):
+                self.assertTrue(placement.exists(), "%s missing" % placement)
+                self.assertTrue(filecmp.cmp(str(SKILL), str(placement), shallow=False), "%s drifted from the template" % placement)
+
+    def test_hook_installed_and_identical_to_template(self):
+        import filecmp
+        self.assertTrue(filecmp.cmp(str(SETTINGS), str(REPO / ".claude" / "settings.json"), shallow=False))
+        self.assertEqual((REPO / "CLAUDE.md").read_text(encoding="utf-8").splitlines()[0], "@AGENTS.md")
+
+
 class EntryFiles(unittest.TestCase):
     def test_agents_md_carries_the_four_steps(self):
         text = (ADAPTERS / "AGENTS.md").read_text(encoding="utf-8")
